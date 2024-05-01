@@ -153,7 +153,7 @@ END;
 $function$;
 
 -- Rental procedure
-CCREATE OR REPLACE PROCEDURE process_rental(
+CREATE OR REPLACE PROCEDURE process_rental(
     p_vehicle_id INT,
     p_customer_id INT,
     p_start_date DATE,

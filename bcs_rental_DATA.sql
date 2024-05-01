@@ -1,5 +1,7 @@
+BEGIN;
+
 -- Ügyfelek adatokkal való feltöltése
--- Insert additional customer records
+
 INSERT INTO customers (name, city, address, email, phone, zipcode, county) VALUES
 ('Szabo Laszlo', 'Szeged', 'Kossuth Lajos sgt. 50.', 'szabo.laszlo@email.com', '06701234657', 6720, 'Csongrád-Csanád'),
 ('Toth Agnes', 'Pécs', 'Mártírok útja 11.', 'toth.agnes@email.com', '06706544321', 7622, 'Baranya'),
@@ -40,14 +42,13 @@ INSERT INTO vehicles (license_plate, make, model, year, status, category) VALUES
 
 
 -- Kölcsönzések adatokkal való feltöltése 80 rekorddal (random dátumok max 2 hónap kölcsönzés 2020-01-31 és 2024-04-30 között)
-INSERT INTO rentals (vehicle_id, customer_id, customer_county, start_date, end_date, status)
+INSERT INTO rentals (vehicle_id, customer_id, customer_county, start_date, end_date)
 SELECT 
     floor(random() * 12) + 1, -- Random vehicle ID from 1 to 12
     c.customer_id, -- Random customer ID
     c.county, -- County corresponding to the customer ID
     start_date_random,
-    start_date_random + (floor(random() * 60) + 1 || ' days')::INTERVAL, -- Random end date between start date and 2 months later
-    TRUE -- Default status
+    start_date_random + (floor(random() * 60) + 1 || ' days')::INTERVAL -- Random end date between start date and 2 months later
 FROM 
     generate_series(1, 80) AS gs
 JOIN
@@ -76,3 +77,5 @@ BEGIN
         PERFORM generate_invoice(rental_id_param);
     END LOOP;
 END $$;
+
+COMMIT;

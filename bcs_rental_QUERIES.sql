@@ -38,3 +38,7 @@ ORDER BY year DESC, month DESC;
 
 -- 6. Vehicle Report (view a bcs_rental.sql-ben)
 SELECT * FROM Vehicle_Report;
+
+-- Példa a kölcsönzési eljárások meghívására
+call process_rental (1,1,'2024-04-10'); -- Rental initiation
+call complete_rental(1536, '2024-05-02'); -- Rental completion

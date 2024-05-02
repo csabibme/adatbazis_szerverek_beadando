@@ -14,7 +14,7 @@ CREATE TABLE vehicle_categories (
     daily_rate INT NOT NULL
 );
 
--- A kategóriák feltöltése
+-- Uploading vehicle categories
 INSERT INTO vehicle_categories (category, description, daily_rate) VALUES
 (1, 'Városi alapkategória', 2500),
 (2, 'Minőségi középkategória', 4500),
@@ -185,7 +185,7 @@ BEGIN
     RETURNING rental_id INTO v_rental_id;
 
     -- Generate invoice using the existing function
-    --PERFORM generate_invoice(v_rental_id); -- No invoice is needed, this is the begin of rental
+    --PERFORM generate_invoice(v_rental_id); -- No invoice is needed, this is the begining of rental
 END;
 $$;
 
@@ -223,8 +223,6 @@ BEGIN
     PERFORM generate_invoice(p_rental_id);
 END;
 $$;
-
-
 
 -- Create vehicle report view
 CREATE VIEW Vehicle_Report AS

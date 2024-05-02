@@ -27,17 +27,17 @@ INSERT INTO customers (name, city, address, email, phone, zipcode, county) VALUE
 -- Járművek adatokkal való feltöltése
 INSERT INTO vehicles (license_plate, make, model, year, status, category) VALUES
 ('ABC-123', 'Ford', 'Focus', 2018, TRUE, 1),
-('XYZ-789', 'Audi', 'A6', 2020, False, 3),
+('XYZ-789', 'Audi', 'A6', 2020, TRUE, 3),
 ('DEF-456', 'Toyota', 'Camry', 2019, TRUE, 3),
 ('GHI-789', 'Honda', 'Civic', 2021, TRUE, 1),
-('JKL-012', 'BMW', 'X5', 2020, FALSE, 3),
+('JKL-012', 'BMW', 'X5', 2020, TRUE, 3),
 ('MNO-345', 'Mercedes-Benz', 'E-Class', 2017, TRUE, 2),
 ('PQR-678', 'Volkswagen', 'Golf', 2019, TRUE, 1),
 ('STU-901', 'Hyundai', 'Elantra', 2020, TRUE, 2),
 ('VWX-234', 'Chevrolet', 'Cruze', 2018, TRUE, 2),
 ('YZA-567', 'Kia', 'Optima', 2019, TRUE, 2),
-('AA-CF-211', 'Toyota','Civic', 2023, FALSE, 2),
-('TZT-233', 'Mercedes-Benz', 'S-Class 500', 2022, FALSE, 4);
+('AA-CF-211', 'Toyota','Civic', 2023, TRUE, 2),
+('TZT-233', 'Mercedes-Benz', 'S-Class 500', 2022, TRUE, 4);
 
 
 

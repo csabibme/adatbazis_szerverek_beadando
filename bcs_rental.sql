@@ -75,7 +75,7 @@ CREATE TABLE rentals (
     customer_id INT NOT null,
     customer_county VARCHAR(50) NOT null,
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    end_date DATE DEFAULT NULL,
     FOREIGN KEY (customer_id, customer_county) REFERENCES customers(customer_id, county)
 );
 
@@ -102,17 +102,22 @@ CREATE INDEX idx_invoices_dates_amount ON invoices (issue_date, amount);
 -- Create function and trigger for vehicle status
 CREATE OR REPLACE FUNCTION update_vehicle_status() RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.status = FALSE THEN
-        UPDATE vehicles SET status = FALSE WHERE vehicle_id = NEW.vehicle_id;
-    ELSIF NEW.status = TRUE THEN
+    -- Check if the end_date is being set (rental is ending)
+    IF NEW.end_date IS NOT NULL THEN
+        -- Set vehicle status to TRUE (available)
         UPDATE vehicles SET status = TRUE WHERE vehicle_id = NEW.vehicle_id;
+    ELSIF NEW.end_date IS NULL THEN
+        -- Set vehicle status to FALSE (not available) when a rental starts or is ongoing
+        UPDATE vehicles SET status = FALSE WHERE vehicle_id = NEW.vehicle_id;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_vehicle_status AFTER UPDATE ON rentals
-FOR EACH ROW EXECUTE FUNCTION update_vehicle_status();
+CREATE OR REPLACE TRIGGER trigger_vehicle_status
+AFTER INSERT OR UPDATE OF end_date ON rentals
+FOR EACH ROW
+EXECUTE FUNCTION update_vehicle_status();
 
 -- Stored procedure to generate invoices
 CREATE OR REPLACE FUNCTION public.generate_invoice(rental_id_param integer)
@@ -156,8 +161,7 @@ $function$;
 CREATE OR REPLACE PROCEDURE process_rental(
     p_vehicle_id INT,
     p_customer_id INT,
-    p_start_date DATE,
-    p_end_date DATE
+    p_start_date DATE
 )
 LANGUAGE plpgsql
 AS $$
@@ -176,14 +180,50 @@ BEGIN
     END IF;
 
     -- Insert the new rental into the 'rentals' table
-    INSERT INTO rentals (vehicle_id, customer_id, customer_county, start_date, end_date)
-    VALUES (p_vehicle_id, p_customer_id, v_county, p_start_date, p_end_date)
+    INSERT INTO rentals (vehicle_id, customer_id, customer_county, start_date)
+    VALUES (p_vehicle_id, p_customer_id, v_county, p_start_date)
     RETURNING rental_id INTO v_rental_id;
 
     -- Generate invoice using the existing function
-    PERFORM generate_invoice(v_rental_id);
+    --PERFORM generate_invoice(v_rental_id); -- No invoice is needed, this is the begin of rental
 END;
 $$;
+
+-- Complete rental procedure
+CREATE OR REPLACE PROCEDURE complete_rental(
+    p_rental_id INT,
+    p_end_date DATE
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_customer_id INT;
+    v_end_date DATE;
+BEGIN
+    -- Retrieve the customer_id and end_date from rentals
+    SELECT customer_id, end_date INTO v_customer_id, v_end_date
+    FROM rentals
+    WHERE rental_id = p_rental_id;
+
+    -- Check whether the rental is already completed
+    IF v_end_date IS NOT NULL THEN
+        RAISE EXCEPTION 'This rental is already completed.';
+    END IF;
+
+    -- UPDATE rentals with end_date
+    UPDATE rentals SET end_date = p_end_date
+    WHERE rental_id = p_rental_id;
+
+    -- Update vehicle status to TRUE indicating it's available again
+    UPDATE vehicles SET status = TRUE
+    FROM rentals
+    WHERE vehicles.vehicle_id = rentals.vehicle_id AND rentals.rental_id = p_rental_id;
+
+    -- Generate invoice for this rental
+    PERFORM generate_invoice(p_rental_id);
+END;
+$$;
+
 
 
 -- Create vehicle report view
